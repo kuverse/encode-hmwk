@@ -104,7 +104,7 @@ export class AppService {
       functionName: 'hasRole',
       args: [MINTER_ROLE, address],
     });
-    return `The address ${address} ${hasRole ? 'has' : 'does not have'} the role ${MINTER_ROLE}`;
+    return hasRole;
   }
 
   async mintTokens(address: string) {
@@ -117,7 +117,7 @@ export class AppService {
       args: [address, parseEther(mintAmount)],
     });
     const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
-    return receipt;
+    return `Minted ${mintAmount} tokens at blockNumber: ${receipt.blockNumber}. Transaction Reciept: ${receipt.transactionHash}`;
   }
 
   async getVotingPower(address: string) {
