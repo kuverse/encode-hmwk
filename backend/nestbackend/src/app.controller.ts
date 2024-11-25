@@ -16,6 +16,11 @@ export class AppController {
     return { result: await this.appService.getTokenName() };
   }
 
+  @Get('contract-address')
+  getContractAddress() {
+    return { result: this.appService.getContractAddress() };
+  }
+
   @Get('total-supply')
   async getTotalSupply() {
     return { result: await this.appService.getTotalSupply() };
