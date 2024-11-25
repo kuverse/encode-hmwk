@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import * as tokenJson from './assets/MyToken.json';
+import * as ballotJson from './assets/TokenizedBallot.json';
+import * as contractConfig from './assets/contract.config.json';
+
 import {
   createPublicClient,
   http,
   Address,
   formatEther,
   createWalletClient,
+  parseEther,
 } from 'viem';
 import { sepolia } from 'viem/chains';
 import { ConfigService } from '@nestjs/config';
@@ -15,6 +19,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 export class AppService {
   publicClient;
   walletClient;
+  account;
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<Address>('ALCHEMY_API_KEY');
@@ -103,6 +108,99 @@ export class AppService {
   }
 
   async mintTokens(address: string) {
+    const contractAddress = this.getContractAddress();
+    const mintAmount = '100';
+    const hash = await this.walletClient.writeContract({
+      address: contractAddress as `0x${string}`,
+      abi: tokenJson.abi,
+      functionName: 'mint',
+      args: [address, parseEther(mintAmount)],
+    });
+    const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
+    return receipt;
+  }
+
+  async getVotingPower(address: string) {
+    const contractAddress = this.getContractAddress();
+    const votingPower = (await this.publicClient.readContract({
+      address: contractAddress as `0x${string}`,
+      abi: tokenJson.abi,
+      functionName: 'getVotes',
+      args: [address],
+    })) as bigint;
+
+    return votingPower.toLocaleString();
+  }
+
+  async getResults() {
+    const contractAddress = contractConfig.TokenizedBallot_address;
+    const proposalCount = (await this.publicClient.readContract({
+      address: contractAddress as `0x${string}`,
+      abi: ballotJson.abi,
+      functionName: 'getProposalsCount',
+    })) as number;
+
+    const proposalsList = [];
+
+    for (let i = 0; i < proposalCount; i++) {
+      const proposal = (await this.publicClient.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: ballotJson.abi,
+        functionName: 'proposals',
+        args: [i],
+      })) as [string, bigint];
+
+      const proposalName = Buffer.from(
+        contractConfig.proposals[Number(i)],
+      ).toString();
+      proposalsList.push({
+        id: i,
+        name: proposalName,
+        votes: proposal[1].toLocaleString(),
+      });
+    }
+    return proposalsList;
+  }
+
+  async selfDelegate(address: string) {
     return address;
+  }
+
+  async vote(address: string, proposal: number, amount: number) {
+    const contractAddress = contractConfig.TokenizedBallot_address;
+    const votesInWei = parseEther(amount.toString());
+
+    const hash = await this.walletClient.writeContract({
+      address: contractAddress as Address,
+      abi: ballotJson.abi,
+      functionName: 'vote',
+      args: [BigInt(proposal), votesInWei],
+      account: this.account,
+    });
+    return hash;
+  }
+
+  async winningProposal() {
+    const contractAddress = contractConfig.TokenizedBallot_address;
+    const winningProposal = await this.publicClient.readContract({
+      address: contractAddress as Address,
+      abi: ballotJson.abi,
+      functionName: 'winningProposal',
+    });
+    const result = winningProposal.toString().split(',')[0];
+    return result;
+  }
+
+  async winningName() {
+    const contractAddress = contractConfig.TokenizedBallot_address;
+    const winningName = await this.publicClient.readContract({
+      address: contractAddress as Address,
+      abi: ballotJson.abi,
+      functionName: 'winnerName',
+    });
+    const name = Buffer.from((winningName as string).slice(2), 'hex')
+      .toString()
+      .replace(/\u0000/g, '');
+    return name;
   }
 }
