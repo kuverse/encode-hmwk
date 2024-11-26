@@ -111,7 +111,7 @@ export class AppService {
     const contractAddress = this.getContractAddress();
     const mintAmount = '100';
     const hash = await this.walletClient.writeContract({
-      address: contractAddress as `0x${string}`,
+      address: contractAddress as Address,
       abi: tokenJson.abi,
       functionName: 'mint',
       args: [address, parseEther(mintAmount)],
