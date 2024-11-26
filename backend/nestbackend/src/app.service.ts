@@ -123,7 +123,7 @@ export class AppService {
   async getVotingPower(address: string) {
     const contractAddress = this.getContractAddress();
     const votingPower = (await this.publicClient.readContract({
-      address: contractAddress as `0x${string}`,
+      address: contractAddress as Address,
       abi: tokenJson.abi,
       functionName: 'getVotes',
       args: [address],
@@ -135,7 +135,7 @@ export class AppService {
   async getResults() {
     const contractAddress = contractConfig.TokenizedBallot_address;
     const proposalCount = (await this.publicClient.readContract({
-      address: contractAddress as `0x${string}`,
+      address: contractAddress as Address,
       abi: ballotJson.abi,
       functionName: 'getProposalsCount',
     })) as number;
@@ -144,7 +144,7 @@ export class AppService {
 
     for (let i = 0; i < proposalCount; i++) {
       const proposal = (await this.publicClient.readContract({
-        address: contractAddress as `0x${string}`,
+        address: contractAddress as Address,
         abi: ballotJson.abi,
         functionName: 'proposals',
         args: [i],
@@ -163,7 +163,15 @@ export class AppService {
   }
 
   async selfDelegate(address: string) {
-    return address;
+    const contractAddress = contractConfig.MyERC20Vote_address;
+    const hash = await this.walletClient.writeContract({
+      address: contractAddress as `0x${string}`,
+      abi: tokenJson.abi,
+      functionName: 'delegate',
+      args: [address],
+    });
+
+    return hash;
   }
 
   async vote(address: string, proposal: number, amount: number) {

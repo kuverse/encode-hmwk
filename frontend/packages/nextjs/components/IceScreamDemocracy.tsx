@@ -102,7 +102,7 @@ function FlavorCard({ flavor }: { flavor: Flavor }) {
 
       {loading && <div className="spinner mt-2"></div>}
 
-      {successMessage && <p className="text-sm text-green-500 mt-2">{successMessage}</p>}
+      {successMessage && <p className="text-m text-green-500 mt-2">{successMessage}</p>}
     </div>
   );
 }

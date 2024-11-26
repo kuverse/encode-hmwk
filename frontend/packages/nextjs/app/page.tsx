@@ -49,9 +49,14 @@ function WalletInfo() {
     );
   if (isDisconnected)
     return (
-      <div>
-        <p>Wallet disconnected. Connect wallet to continue</p>
+      <div className="flex items-center justify-center mt-2">
+      <div className="bg-white p-2 rounded-lg shadow-md text-center">
+        <h3 className="text-xs font-semibold text-gray-500">
+          Wallet disconnected. Connect wallet to continue.
+        </h3>
       </div>
+    </div>
+    
     );
 }
 
@@ -103,8 +108,8 @@ function TokenAddressFromApi() {
   <div className="card w-120 bg-primary text-primary-content shadow-lg rounded-lg p-1">
     <div className="card-body flex flex-col items-center p-1">
       <div className="text-center">
-        <h3 className="text-m mt-3">Governance Token Address:</h3>
-        <p className="text-l">{contractAddress || "N/A"}</p>
+        <h3 className="text-l mt-3">Governance Token Address:</h3>
+        <p className="text-xl">{contractAddress || "N/A"}</p>
       </div>
     </div>
   </div>

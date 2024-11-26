@@ -5,6 +5,7 @@ import { useAccount } from "wagmi";
 const MintDelegate = () => {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loading2, setLoading2] = useState(false);
   const { address } = useAccount();
   const [minterRole, setMinterRole] = useState(false);
   const [votingPower, setVotingPower] = useState("0");
@@ -23,9 +24,8 @@ const MintDelegate = () => {
         body: JSON.stringify({ address }),
       });
       const data = await response.json();
-      console.log("DATA:", data);
-      if (data) {
-        setResult(`Minted 100 tokens at blockNumber: ${data.blockNumber}\nTransaction Receipt:\n${data.hash}`);
+      if (data.result) {
+        setResult(`${data.result}`);
       } else {
         setResult("Unexpected response from the server.");
       }
@@ -39,7 +39,7 @@ const MintDelegate = () => {
 
   const selfDelegate = async () => {
     try {
-      setLoading(true);
+      setLoading2(true);
       setResult("");
       const response = await fetch(`http://localhost:3001/self-delegate?address=${address}`, {
         method: "POST",
@@ -49,8 +49,8 @@ const MintDelegate = () => {
         body: JSON.stringify({ address }),
       });
       const data = await response.json();
-      if (data.address) {
-        setResult(`Delegated Address: ${data.address}`);
+      if (data.result) {
+        setResult(`Delegated hash: ${data.result}`);
       } else {
         setResult("Unexpected response from the server.");
       }
@@ -58,7 +58,7 @@ const MintDelegate = () => {
       console.error("Error delegating address:", error);
       setResult("Failed to delegate address.");
     } finally {
-      setLoading(false);
+      setLoading2(false);
     }
   };
 
@@ -86,8 +86,6 @@ const MintDelegate = () => {
 
     checkMinterRole();
   }, [address]);
-
-  console.log("minterRole", minterRole);
 
   useEffect(() => {
     const getVotingPower = async () => {
@@ -183,45 +181,48 @@ const MintDelegate = () => {
         </div>
         <div className="card w-1/2 p-4 flex flex-col mb-4 bg-slate-500 shadow-md rounded-lg items-center justify-center mx-auto">
           <h2 className="text-m font-semibold  text-center">Token Balance:</h2>
-          <h3 className="text-m font-semibold  text-center">{tokenBalance}</h3>
+          <h3 className="text-m font-semibold  text-center">{address ? tokenBalance : ""}</h3>
         </div>
       </div>
-      <div className="flex gap-4">
-        <div className="card w-1/2 p-4 flex flex-col bg-slate-800 shadow-md rounded-lg items-center">
-          <h2 className="text-lg font-semibold mb-2">Mint 100 Tokens</h2>
-          <h3 className="flex items-center gap-2 mb-5">
-            Minter Role: {minterRole ? <FaCheckCircle color="green" /> : <FaTimesCircle color="red" />}
-          </h3>{" "}
-          <button
-            onClick={mintTokens}
-            disabled={!address || loading}
-            className="bg-blue-500 text-white py-2 px-4 h-16 rounded hover:bg-blue-600 disabled:bg-gray-400 w-64"
-          >
-            {loading ? "Minting..." : "Mint Tokens"}
-          </button>
-        </div>
+      {address && (
+        <>
+          <div className="flex gap-4">
+            <div className="card w-1/2 p-4 flex flex-col bg-slate-800 shadow-md rounded-lg items-center">
+              <h2 className="text-lg font-semibold mb-2">Mint 100 Tokens</h2>
+              <h3 className="flex items-center gap-2 mb-5">
+                Minter Role {minterRole ? <FaCheckCircle color="green" /> : <FaTimesCircle color="red" />}
+              </h3>{" "}
+              <button
+                onClick={mintTokens}
+                disabled={!address || loading}
+                className="bg-blue-500 text-white py-2 px-4 h-16 rounded hover:bg-blue-600 disabled:bg-gray-400 w-64"
+              >
+                {loading ? "Minting..." : "Mint Tokens"}
+              </button>
+            </div>
 
-        {/* Self Delegate Card */}
-        <div className="card w-1/2 p-4 flex flex-col bg-slate-800 shadow-md rounded-lg items-center">
-          <h2 className="text-lg font-semibold mb-2">Increase Voting Power</h2>
-          <h3 className="mb-5">
-            Voting Power:{" "}
-            {Intl.NumberFormat("en-US", {
-              maximumFractionDigits: 2,
-            }).format(parseFloat(votingPower) / 1e18)}{" "}
-            MTK
-          </h3>
-          <button
-            onClick={selfDelegate}
-            disabled={!address || loading}
-            className="bg-green-500 text-white py-2 px-4 h-16 rounded hover:bg-green-600 disabled:bg-gray-400 w-64"
-          >
-            {loading ? "Delegating..." : "Self Delegate"}
-          </button>
-        </div>
-      </div>
-
-      {result && <pre className="mt-4 text-green-700 whitespace-pre-wrap">{result}</pre>}
+            {/* Self Delegate Card */}
+            <div className="card w-1/2 p-4 flex flex-col bg-slate-800 shadow-md rounded-lg items-center">
+              <h2 className="text-lg font-semibold mb-2">Increase Voting Power</h2>
+              <h3 className="mb-5">
+                Voting Power:{" "}
+                {Intl.NumberFormat("en-US", {
+                  maximumFractionDigits: 2,
+                }).format(parseFloat(votingPower) / 1e18)}{" "}
+                MTK
+              </h3>
+              <button
+                onClick={() => selfDelegate()}
+                disabled={!address || loading2}
+                className="bg-green-500 text-white py-2 px-4 h-16 rounded hover:bg-green-600 disabled:bg-gray-400 w-64"
+              >
+                {loading2 ? "Delegating..." : "Self Delegate"}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+      {result && <pre className="mt-4 text-green-500 whitespace-pre-wrap">{result}</pre>}
     </div>
   );
 };
