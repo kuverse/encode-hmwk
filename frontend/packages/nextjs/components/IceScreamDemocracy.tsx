@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { formatEther } from "viem";
+//import * as ballotJson from "./assets/TokenizedBallot.json";
+//import * as contractConfig from "./assets/contract.config.json";
+import { formatEther, parseEther } from "viem";
+import { useAccount } from "wagmi";
+import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
 type Flavor = {
   id: number;
@@ -51,7 +55,35 @@ function FlavorCard({ flavor }: { flavor: Flavor }) {
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const { writeContractAsync: voteWriteAsync } = useScaffoldWriteContract("TokenizedBallot");
+  const { address } = useAccount();
 
+  async function vote() {
+    try {
+      setLoading(true);
+      const votesInWei = parseEther(amount.toString());
+      console.log("Transaction:", BigInt(flavor.id), votesInWei);
+
+      await voteWriteAsync(
+        {
+          functionName: "vote",
+          args: [BigInt(flavor.id), votesInWei],
+          address: address,
+        },
+        {
+          onBlockConfirmation: txnReceipt => {
+            console.log("Transaction confirmed:", txnReceipt.blockHash);
+            setSuccessMessage(txnReceipt.blockHash);
+            setLoading(false);
+          },
+        },
+      );
+    } catch (error) {
+      console.error("Error delegating votes:", error);
+    }
+  }
+  {
+    /*} 
   const handleVote = async () => {
     setLoading(true); // Show the spinner
     setSuccessMessage(""); // Clear previous success messages
@@ -78,7 +110,8 @@ function FlavorCard({ flavor }: { flavor: Flavor }) {
     } finally {
       setLoading(false);
     }
-  };
+  }; */
+  }
 
   return (
     <div className="card w-40 p-2 flex flex-col bg-slate-800 items-center mt-5">
@@ -93,7 +126,7 @@ function FlavorCard({ flavor }: { flavor: Flavor }) {
         className="input w-full mt-2"
       />
       <button
-        onClick={handleVote}
+        onClick={vote}
         className="btn bg-blue-600 hover:bg-blue-400 text-white mt-2 w-full disabled:bg-gray-200 disabled:text-gray-400"
         disabled={!amount || loading}
       >

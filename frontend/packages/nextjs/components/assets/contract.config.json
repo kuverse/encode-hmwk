@@ -1,0 +1,18 @@
+{
+  "MyERC20Vote_address": "0xa58d7a0636135073f38cc45e166f6f518622838c",
+  "TokenizedBallot_address": "0x6d08d3a93bce4cec4b27eb93307589bfecc42525",
+  "proposals": [
+    "Vanilla",
+    "Chococlate",
+    "Salted Caramel",
+    "Strawberry",
+    "Mint"
+  ],
+  "voter_addresses": {
+    "kaveh_1": "0xe6DdDcbb2848983D9cAaB715611849E579759CB0",
+    "kaveh_2": "0xB0826C6f126A04cEc28229D048911Fd8B9668F04",
+    "code": "0xd682915e56E8817685d9085c8adCA3dc140aCC4D",
+    "lindy": "0xd219C8b54832d6ca7d933a42d51F8bDC3Ee4370B"
+  }
+}
+

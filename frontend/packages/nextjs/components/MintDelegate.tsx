@@ -1,6 +1,8 @@
+/* eslint-disable prettier/prettier */
 import React, { useEffect, useState } from "react";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import { useAccount } from "wagmi";
+import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
 const MintDelegate = () => {
   const [result, setResult] = useState("");
@@ -11,6 +13,7 @@ const MintDelegate = () => {
   const [votingPower, setVotingPower] = useState("0");
   const [tokenBalance, setTokenBalance] = useState("0");
   const [winningIcecream, setWinningIcecream] = useState("");
+  const { writeContractAsync: delegateWriteAsync } = useScaffoldWriteContract("MyToken");
 
   const mintTokens = async () => {
     try {
@@ -37,6 +40,29 @@ const MintDelegate = () => {
     }
   };
 
+
+  async function delegate() {
+    try {
+      setLoading2(true);
+      await delegateWriteAsync(
+        {
+          functionName: "delegate",
+          args: [address],
+        },
+        {
+          onBlockConfirmation: txnReceipt => {
+            console.log("Transaction confirmed:", txnReceipt.blockHash);
+            setResult(txnReceipt.blockHash);
+            setLoading2(false);
+          },
+        },
+      );
+    } catch (error) {
+      console.error("Error delegating votes:", error);
+    }
+  }
+  {
+    /*}
   const selfDelegate = async () => {
     try {
       setLoading2(true);
@@ -60,7 +86,8 @@ const MintDelegate = () => {
     } finally {
       setLoading2(false);
     }
-  };
+  };*/
+  }
 
   useEffect(() => {
     const checkMinterRole = async () => {
@@ -212,7 +239,7 @@ const MintDelegate = () => {
                 MTK
               </h3>
               <button
-                onClick={() => selfDelegate()}
+                onClick={() => delegate()}
                 disabled={!address || loading2}
                 className="bg-green-500 text-white py-2 px-4 h-16 rounded hover:bg-green-600 disabled:bg-gray-400 w-64"
               >
